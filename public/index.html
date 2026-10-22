@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Smart Campus Access Control</title>
+<meta name="description" content="Live demo of Role-Based Access Control with mutex, semaphores, priority scheduling and Banker's Algorithm.">
+<meta name="theme-color" content="#0b1220">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ==================== ICON SPRITE (stroke set, 24px grid) ==================== -->
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5.2c0 4.3-2.9 8.2-7 9.4-4.1-1.2-7-5.1-7-9.4V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-3.9"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.6l5 5 10-10.4"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.2V12l3.2 2"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24"><rect x="2.5" y="5.5" width="19" height="13" rx="2.2"/><path d="M2.5 10h19"/><path d="M6 14.2h3.5"/><path d="M6 16.8h2"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.8" cy="16.2" r="4.3"/><path d="M10.9 13.1L19.5 4.5"/><path d="M16.4 7.6l2.4 2.4"/><path d="M14 10l2.3 2.3"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2.2"/><path d="M8.2 10.5V7.6a3.8 3.8 0 017.6 0v2.9"/><path d="M12 14.4v2.4"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2.2"/><path d="M3.5 9.2h17M3.5 14.8h17M9.2 3.5v17M14.8 3.5v17"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 6.5h16M4 12h16M4 17.5h11"/></symbol>
+  <symbol id="i-threads" viewBox="0 0 24 24"><path d="M4 6.5c4 0 4 5.5 8 5.5s4-5.5 8-5.5"/><path d="M4 17.5c4 0 4-5.5 8-5.5s4 5.5 8 5.5"/></symbol>
+  <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 9.5L12 4.5l9 5"/><path d="M5.5 10v7.5M9.8 10v7.5M14.2 10v7.5M18.5 10v7.5"/><path d="M3.5 20.5h17"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2.1"/><circle cx="15.5" cy="12" r="2.1"/><circle cx="7.5" cy="17" r="2.1"/></symbol>
+  <symbol id="i-board" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M12 16v4M8.5 20h7"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M5 5.2A2.2 2.2 0 017.2 3H19.5v14.6H7.2A2.2 2.2 0 005 19.8V5.2z"/><path d="M5 17.6a2.2 2.2 0 012.2-2.2H19.5"/><path d="M8.5 7.5h6.5"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M6.5 3h7.5l4.5 4.5V21H6.5z"/><path d="M14 3v4.5h4.5"/><path d="M9.5 12.5h6M9.5 16h6"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="6.5" rx="1.6"/><rect x="3.5" y="13.5" width="17" height="6.5" rx="1.6"/><path d="M7 7.2h1.5M7 16.7h1.5"/><circle cx="17" cy="7.2" r=".9"/><circle cx="17" cy="16.7" r=".9"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20h16"/><rect x="5" y="11" width="3.6" height="6" rx="1"/><rect x="10.2" y="6.5" width="3.6" height="10.5" rx="1"/><rect x="15.4" y="14" width="3.6" height="3" rx="1"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10.2h18"/><circle cx="17" cy="14.6" r="1.3"/></symbol>
+  <symbol id="i-cap" viewBox="0 0 24 24"><path d="M2.5 9L12 4.5 21.5 9 12 13.5 2.5 9z"/><path d="M6.8 11.2v4.6c0 1.5 2.4 2.8 5.2 2.8s5.2-1.3 5.2-2.8v-4.6"/><path d="M21.5 9.4v5.6"/></symbol>
+  <symbol id="i-chip" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.6"/><rect x="10.5" y="10.5" width="3" height="3" rx=".6"/><path d="M9.5 3.5v3.5M14.5 3.5v3.5M9.5 17v3.5M14.5 17v3.5M3.5 9.5H7M3.5 14.5H7M17 9.5h3.5M17 14.5h3.5"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9.5 3.5v6L4.9 17.6A1.9 1.9 0 006.5 20.5h11a1.9 1.9 0 001.6-2.9L14.5 9.5v-6"/><path d="M8.5 3.5h7"/><path d="M7.4 14.6h9.2"/></symbol>
+  <symbol id="i-disc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.6"/></symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2.2"/><path d="M7.2 10l2.6 2.5-2.6 2.5"/><path d="M12.8 15h4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v10.5"/><path d="M7.6 10.6L12 15l4.4-4.4"/><path d="M4.5 19.5h15"/></symbol>
+  <symbol id="i-vol" viewBox="0 0 24 24"><path d="M4 9.5v5h3.4L12 18.4V5.6L7.4 9.5H4z"/><path d="M15.4 9.4a3.7 3.7 0 010 5.2"/><path d="M18 6.8a7.3 7.3 0 010 10.4"/></symbol>
+  <symbol id="i-vol-off" viewBox="0 0 24 24"><path d="M4 9.5v5h3.4L12 18.4V5.6L7.4 9.5H4z"/><path d="M16 9.8l4.4 4.4M20.4 9.8L16 14.2"/></symbol>
+  <symbol id="i-exit" viewBox="0 0 24 24"><path d="M14 4.5H6.5A1.5 1.5 0 005 6v12a1.5 1.5 0 001.5 1.5H14"/><path d="M17 8.5l3.5 3.5L17 15.5"/><path d="M20.5 12H10"/></symbol>
+</svg>
+
+<canvas id="bg" aria-hidden="true"></canvas>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<div id="boot" class="boot">
+  <div class="boot-inner">
+    <div class="logo3d"><div class="cube"><div class="c f1"></div><div class="c f2"></div><div class="c f3"></div><div class="c f4"></div><div class="c f5"></div><div class="c f6"></div></div></div>
+    <h1>Initialising access control…</h1>
+    <div class="bootbar"><i></i></div>
+  </div>
+</div>
+
+<header>
+  <div class="brand">
+    <div class="mark"><div class="ring"></div><svg class="mi"><use href="#i-shield"/></svg></div>
+    <div>
+      <h1>Smart Campus Access Control</h1>
+      <p>Group 10 · BACSE106 · Module 5: Security, Protection &amp; Virtualization</p>
+    </div>
+  </div>
+
+  <div class="sysbox">
+    <div class="chip" id="mutexChip" title="Mutual exclusion on the shared policy database">
+      <span class="dot"></span><span id="mutexText">MUTEX FREE</span>
+    </div>
+    <div class="chip" id="queueChip" title="Requests currently waiting">
+      <span class="dot amber"></span><span id="queueText">QUEUE 0</span>
+    </div>
+    <button class="btn ghost icon" id="soundBtn" title="Toggle sound" aria-label="Toggle sound"><svg class="mi"><use href="#i-vol"/></svg></button>
+    <button class="btn ghost icon" id="installBtn" title="Install app" aria-label="Install app" hidden><svg class="mi"><use href="#i-download"/></svg></button>
+    <button class="btn ghost" id="resetBtn">Reset</button>
+  </div>
+</header>
+
+<nav>
+  <button class="tab active" data-tab="sim"><span class="tn">01</span>Live Simulation</button>
+  <button class="tab" data-tab="compare"><span class="tn">02</span>Role Comparison</button>
+  <button class="tab" data-tab="queue"><span class="tn">03</span>Resource Queue</button>
+  <button class="tab" data-tab="cover"><span class="tn">04</span>Module 5 Coverage</button>
+  <div class="glider"></div>
+</nav>
+
+<main>
+
+<!-- ============================== TAB 1 ============================== -->
+<section id="tab-sim" class="panel active">
+
+  <div class="stage3d" id="doorStage">
+    <div class="stage-scene">
+      <div class="room">
+        <div class="wall"></div>
+        <div class="floor"></div>
+        <div class="doorframe">
+          <div class="door" id="door">
+            <div class="door-face"><span class="peephole"></span><span class="plate" id="doorPlate">LOCKED</span></div>
+            <div class="door-edge"></div>
+          </div>
+          <div class="lightbeam" id="beam"></div>
+        </div>
+        <div class="sign" id="doorSign">Server Room</div>
+        <div class="card3d" id="swipeCard"><span>RBAC</span></div>
+      </div>
+    </div>
+    <div class="stage-hint" id="stageHint">Pick a person and a destination, then swipe the card.</div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2><span class="hn">1</span>Who is swiping?</h2>
+      <div id="personaPicker" class="picker personas"></div>
+
+      <h2 class="mt"><span class="hn">2</span>Where are they trying to go?</h2>
+      <div id="resourcePicker" class="picker res"></div>
+
+      <label class="toggle">
+        <input type="checkbox" id="emergencyToggle">
+        <span>Emergency override <em>(break-glass · Slide 7)</em></span>
+      </label>
+
+      <button class="btn primary big" id="swipeBtn"><span class="lbl">Swipe Card</span></button>
+    </div>
+
+    <div class="card">
+      <h2><span class="hn">3</span>What the system is doing</h2>
+      <div id="steps" class="steps"></div>
+      <div id="outcome" class="outcome hidden"></div>
+    </div>
+  </div>
+
+  <div class="card mt">
+    <div class="cardhead">
+      <h2>Audit log <small>· every attempt recorded, granted or not</small></h2>
+      <div class="stats" id="stats"></div>
+    </div>
+    <table class="log"><thead>
+      <tr><th>Time</th><th>Person</th><th>Role</th><th>Resource</th><th>Result</th><th>Reason</th></tr>
+    </thead><tbody id="logBody"></tbody></table>
+    <a class="btn ghost sm" href="/api/log.csv" download><svg class="mi"><use href="#i-download"/></svg> Export CSV</a>
+  </div>
+</section>
+
+<!-- ============================== TAB 2 ============================== -->
+<section id="tab-compare" class="panel">
+  <div class="card">
+    <div class="cardhead">
+      <h2>Same door, five different people</h2>
+      <div class="legend"><span class="lg yes"><svg class="mi"><use href="#i-check"/></svg> allowed</span><span class="lg no"><svg class="mi"><use href="#i-x"/></svg> denied</span></div>
+    </div>
+    <p class="hint">Click a resource. RBAC answers instantly from the access matrix — this is Slide 8, alive. Empty cell = denied by default.</p>
+    <div id="comparePicker" class="picker res"></div>
+
+    <div class="cube-wrap" id="cubeWrap">
+      <div class="cube3d" id="cube3d">
+        <div class="face front"></div><div class="face back"></div>
+        <div class="face right"></div><div class="face left"></div>
+        <div class="face top"></div><div class="face bottom"></div>
+      </div>
+      <p class="drag-hint">drag to rotate the access matrix</p>
+    </div>
+
+    <div id="compareGrid" class="compare"></div>
+  </div>
+</section>
+
+<!-- ============================== TAB 3 ============================== -->
+<section id="tab-queue" class="panel">
+  <div class="card">
+    <h2>Bounded resource pools</h2>
+    <p class="hint">
+      Fixed slot counts mean requests can conflict. A <b>counting semaphore</b> enforces capacity,
+      <b>priority scheduling</b> orders the queue, and <b>Banker's Algorithm</b> refuses any grant
+      that would leave the system unsafe.
+      <br><b>Try this:</b> give <b>Ananya</b> a GPU seat, then ask for one for <b>Vikram</b> — Banker's says WAIT.
+      Release Ananya and watch Vikram wake up.
+    </p>
+    <div id="poolGrid" class="pools"></div>
+  </div>
+
+  <div class="grid2 mt">
+    <div class="card">
+      <h2>Request a slot</h2>
+      <div id="poolPersona" class="picker personas"></div>
+      <div id="poolRequest" class="reqgrid"></div>
+      <div id="poolOutcome" class="outcome hidden"></div>
+    </div>
+    <div class="card">
+      <h2>Waiting queue <small>· P0 highest, FCFS inside a priority, aging prevents starvation</small></h2>
+      <div id="queueList" class="qlist"></div>
+      <h2 class="mt">Active sessions</h2>
+      <div id="sessionList" class="qlist"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== TAB 4 ============================== -->
+<section id="tab-cover" class="panel">
+
+  <div class="card">
+    <div class="cardhead">
+      <h2>OS concepts coverage <small>· what we demonstrate and where it comes from</small></h2>
+      <div id="osMeter" class="stats"></div>
+    </div>
+    <p class="hint">
+      The <b>first six</b> are the core OS concepts driven live by this app. The rest are the
+      cross-module links (Modules 1, 3 and 4) we defend during the presentation.
+    </p>
+    <div id="osGrid" class="osgrid"></div>
+  </div>
+
+  <div class="card mt">
+    <div class="cardhead">
+      <h2>Module 5 syllabus topics <small>· and where each lives in our project</small></h2>
+      <div class="legend">
+        <span class="lg"><span class="badge demo">LIVE</span> driven by this app</span>
+        <span class="lg"><span class="badge slide">SLIDES</span> explained on slides</span>
+        <span class="lg"><span class="badge qa">Q&amp;A</span> defended verbally</span>
+      </div>
+    </div>
+    <div class="filters" id="coverFilters"></div>
+    <div id="coverGrid" class="cover"></div>
+  </div>
+</section>
+
+</main>
+
+<div id="toast" class="toast"></div>
+
+<footer>
+  <span><code>node app.js</code> → <code>http://localhost:3000</code></span>
+  <span class="sep">·</span>
+  <span>Install it from your browser's address bar for a fullscreen app window</span>
+  <span class="sep">·</span>
+  <span>Press <kbd>1</kbd>–<kbd>4</kbd> to switch tabs, <kbd>S</kbd> to swipe</span>
+</footer>
+
+<script src="demo.js"></script>
+</body>
+</html>
